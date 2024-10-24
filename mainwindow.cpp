@@ -16,11 +16,46 @@ MainWindow::MainWindow(QWidget *parent)
     lblStatus = new QLabel();
     statusBar()->addWidget(lblStatus);
     fillLastCompetitions();
+
+    udpSocket = new QUdpSocket(this);
+
+    udpSocket->bind(10123, QUdpSocket::ShareAddress);
+
+    connect(udpSocket, &QUdpSocket::readyRead,
+            this, &MainWindow::processPendingDatagrams);
+
+    tmrStatus = new QTimer(this);
+    connect(tmrStatus, SIGNAL(timeout()), this, SLOT(slotStatus()));
+    tmrStatus->start(3000);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::processPendingDatagrams()
+{
+    QByteArray datagram;
+    while (udpSocket->hasPendingDatagrams()) {
+        QHostAddress host;
+        quint16 port;
+        datagram.resize(int(udpSocket->pendingDatagramSize()));
+        udpSocket->readDatagram(datagram.data(), datagram.size(), &host, &port);
+        QString sData = datagram.data();
+        QString copyCurrent = currentActionLast;
+        copyCurrent.truncate(copyCurrent.lastIndexOf(QChar('_')));
+        if(sData != "" && sData == copyCurrent){
+            udpSocket->writeDatagram(currentActionLast.last(1).toUtf8(), host, port);
+            lblStatus->setStyleSheet("color: green;");
+            tmrStatus->stop();
+            tmrStatus->start(3000);
+        }
+    }
+}
+
+void MainWindow::slotStatus(){
+    lblStatus->setStyleSheet("color: red;");
 }
 
 //////////////////////////////////////////////
@@ -50,7 +85,12 @@ void MainWindow::choiceCompetitions()
 {
     if(static_cast<QAction*>(sender())->text() != currentActionLast){
         currentActionLast = static_cast<QAction*>(sender())->text();
-        if(manageBase->openDataBase(currentActionLast + ".db")) lblStatus->setText(currentActionLast);
+        if(manageBase->openDataBase(currentActionLast + ".db")) {
+            QString copyCurrent = currentActionLast;
+            QString mat = " Ковер " + currentActionLast.last(1);
+            copyCurrent.truncate(copyCurrent.lastIndexOf(QChar('_')));
+            lblStatus->setText(copyCurrent + mat);
+        }
     }
     //add->setEnabled(true);
     //addBuffer->setEnabled(true);

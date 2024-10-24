@@ -1,4 +1,4 @@
-QT       += core gui quickwidgets sql
+QT       += core gui quickwidgets sql network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

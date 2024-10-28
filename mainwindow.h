@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QUdpSocket>
+#include <QTcpServer>
 
 #include "database.h"
 
@@ -36,12 +37,14 @@ private:
     void fillLastCompetitions(void);    //заполнение меню последних соревнований
 
     QUdpSocket* udpSocket;              //Проверка подключения к секретарю
+    QTcpServer* tcpServer;              //
 
 
 private slots:
     void choiceCompetitions(void);      //выбор соревнования
     void processPendingDatagrams(void);
     void slotStatus(void);
+    void slotNewTcpConnection(void);
 
 };
 #endif // MAINWINDOW_H

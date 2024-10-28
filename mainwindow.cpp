@@ -27,6 +27,9 @@ MainWindow::MainWindow(QWidget *parent)
     tmrStatus = new QTimer(this);
     connect(tmrStatus, SIGNAL(timeout()), this, SLOT(slotStatus()));
     tmrStatus->start(3000);
+
+    tcpServer = new QTcpServer(this);
+    connect(tcpServer, SIGNAL(newConnection()), this, SLOT(slotNewTcpConnection()));
 }
 
 MainWindow::~MainWindow()
@@ -56,6 +59,11 @@ void MainWindow::processPendingDatagrams()
 
 void MainWindow::slotStatus(){
     lblStatus->setStyleSheet("color: red;");
+}
+
+void MainWindow::slotNewTcpConnection()
+{
+    qDebug()<<"slotNewTcpConnection";
 }
 
 //////////////////////////////////////////////
@@ -90,6 +98,10 @@ void MainWindow::choiceCompetitions()
             QString mat = " Ковер " + currentActionLast.last(1);
             copyCurrent.truncate(copyCurrent.lastIndexOf(QChar('_')));
             lblStatus->setText(copyCurrent + mat);
+            QString port = "1000" + currentActionLast.last(1);
+            if(tcpServer->isListening())
+                tcpServer->close();
+            tcpServer->listen(QHostAddress::Any, port.toInt());
         }
     }
     //add->setEnabled(true);

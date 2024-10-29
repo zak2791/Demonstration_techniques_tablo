@@ -30,6 +30,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     tcpServer = new QTcpServer(this);
     connect(tcpServer, SIGNAL(newConnection()), this, SLOT(slotNewTcpConnection()));
+    tcpServer->listen(QHostAddress::Any, 50001);
+    tcpSocket = new QTcpSocket(this);
 }
 
 MainWindow::~MainWindow()
@@ -41,29 +43,43 @@ void MainWindow::processPendingDatagrams()
 {
     QByteArray datagram;
     while (udpSocket->hasPendingDatagrams()) {
-        QHostAddress host;
+        //QHostAddress host;
         quint16 port;
         datagram.resize(int(udpSocket->pendingDatagramSize()));
-        udpSocket->readDatagram(datagram.data(), datagram.size(), &host, &port);
+        udpSocket->readDatagram(datagram.data(), datagram.size(), host, &port);
         QString sData = datagram.data();
         QString copyCurrent = currentActionLast;
         copyCurrent.truncate(copyCurrent.lastIndexOf(QChar('_')));
         if(sData != "" && sData == copyCurrent){
-            udpSocket->writeDatagram(currentActionLast.last(1).toUtf8(), host, port);
+            udpSocket->writeDatagram(currentActionLast.last(1).toUtf8(), *host, port);
             lblStatus->setStyleSheet("color: green;");
             tmrStatus->stop();
             tmrStatus->start(3000);
+        }
+        else{
+            host = nullptr;
         }
     }
 }
 
 void MainWindow::slotStatus(){
     lblStatus->setStyleSheet("color: red;");
+    host = nullptr;
 }
 
 void MainWindow::slotNewTcpConnection()
 {
-    qDebug()<<"slotNewTcpConnection";
+    tcpSocket = tcpServer->nextPendingConnection();
+    if(host == nullptr){
+        tcpSocket->close();
+            return;
+    }
+    connect(tcpSocket, &QTcpSocket::readyRead, this, [=](){
+        QByteArray arr = tcpSocket->readAll();
+        tcpSocket->write(arr);
+    ;});
+    tcpSocket->waitForReadyRead(10000);
+    tcpSocket->close();
 }
 
 //////////////////////////////////////////////

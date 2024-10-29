@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QUdpSocket>
+#include <QTcpSocket>
 #include <QTcpServer>
 
 #include "database.h"
@@ -38,6 +39,8 @@ private:
 
     QUdpSocket* udpSocket;              //Проверка подключения к секретарю
     QTcpServer* tcpServer;              //
+    QTcpSocket* tcpSocket;              //
+    QHostAddress* host;                 //адрес компьютера секретаря
 
 
 private slots:

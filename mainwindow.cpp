@@ -31,19 +31,21 @@ MainWindow::MainWindow(QWidget *parent)
     tcpServer = new QTcpServer(this);
     connect(tcpServer, SIGNAL(newConnection()), this, SLOT(slotNewTcpConnection()));
     tcpServer->listen(QHostAddress::Any, 50001);
-    tcpSocket = new QTcpSocket(this);
+
+    host = new QHostAddress();
+    flagConnectToSecretary = false;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete host;
 }
 
 void MainWindow::processPendingDatagrams()
 {
     QByteArray datagram;
     while (udpSocket->hasPendingDatagrams()) {
-        //QHostAddress host;
         quint16 port;
         datagram.resize(int(udpSocket->pendingDatagramSize()));
         udpSocket->readDatagram(datagram.data(), datagram.size(), host, &port);
@@ -55,27 +57,30 @@ void MainWindow::processPendingDatagrams()
             lblStatus->setStyleSheet("color: green;");
             tmrStatus->stop();
             tmrStatus->start(3000);
+            flagConnectToSecretary = true;
         }
         else{
-            host = nullptr;
+            flagConnectToSecretary = false;
         }
     }
 }
 
 void MainWindow::slotStatus(){
     lblStatus->setStyleSheet("color: red;");
-    host = nullptr;
+    flagConnectToSecretary = false;
 }
 
 void MainWindow::slotNewTcpConnection()
 {
     tcpSocket = tcpServer->nextPendingConnection();
-    if(host == nullptr){
+    if(!flagConnectToSecretary){
         tcpSocket->close();
             return;
     }
+
     connect(tcpSocket, &QTcpSocket::readyRead, this, [=](){
         QByteArray arr = tcpSocket->readAll();
+        qDebug()<<arr;
         tcpSocket->write(arr);
     ;});
     tcpSocket->waitForReadyRead(10000);
@@ -114,7 +119,7 @@ void MainWindow::choiceCompetitions()
             QString mat = " Ковер " + currentActionLast.last(1);
             copyCurrent.truncate(copyCurrent.lastIndexOf(QChar('_')));
             lblStatus->setText(copyCurrent + mat);
-            QString port = "1000" + currentActionLast.last(1);
+            QString port = "5000" + currentActionLast.last(1);
             if(tcpServer->isListening())
                 tcpServer->close();
             tcpServer->listen(QHostAddress::Any, port.toInt());

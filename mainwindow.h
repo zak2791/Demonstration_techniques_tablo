@@ -41,6 +41,7 @@ private:
     QTcpServer* tcpServer;              //
     QTcpSocket* tcpSocket;              //
     QHostAddress* host;                 //адрес компьютера секретаря
+    bool flagConnectToSecretary;        //флаг подключения к компьютеру
 
 
 private slots:

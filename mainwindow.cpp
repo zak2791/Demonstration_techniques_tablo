@@ -33,7 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     tcpServer->listen(QHostAddress::Any, 50001);
 
     host = new QHostAddress();
-    flagConnectToSecretary = false;
+    hostSectetary = new QHostAddress();
+    //flagConnectToSecretary = false;
 }
 
 MainWindow::~MainWindow()
@@ -57,23 +58,26 @@ void MainWindow::processPendingDatagrams()
             lblStatus->setStyleSheet("color: green;");
             tmrStatus->stop();
             tmrStatus->start(3000);
-            flagConnectToSecretary = true;
+            //flagConnectToSecretary = true;
+            *hostSectetary = *host;
         }
         else{
-            flagConnectToSecretary = false;
+            //flagConnectToSecretary = false;
+            hostSectetary->clear();
         }
     }
 }
 
 void MainWindow::slotStatus(){
     lblStatus->setStyleSheet("color: red;");
-    flagConnectToSecretary = false;
+    //flagConnectToSecretary = false;
+    hostSectetary->clear();
 }
 
 void MainWindow::slotNewTcpConnection()
 {
     tcpSocket = tcpServer->nextPendingConnection();
-    if(!flagConnectToSecretary){
+    if(hostSectetary->isNull()){
         tcpSocket->close();
             return;
     }

@@ -40,8 +40,9 @@ private:
     QUdpSocket* udpSocket;              //Проверка подключения к секретарю
     QTcpServer* tcpServer;              //
     QTcpSocket* tcpSocket;              //
-    QHostAddress* host;                 //адрес компьютера секретаря
-    bool flagConnectToSecretary;        //флаг подключения к компьютеру
+    QHostAddress* host;                 //
+    QHostAddress* hostSectetary;        //адрес компьютера секретаря
+    //bool flagConnectToSecretary;        //флаг подключения к компьютеру
 
 
 private slots:

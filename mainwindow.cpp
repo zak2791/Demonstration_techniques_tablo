@@ -50,6 +50,7 @@ void MainWindow::processPendingDatagrams()
         quint16 port;
         datagram.resize(int(udpSocket->pendingDatagramSize()));
         udpSocket->readDatagram(datagram.data(), datagram.size(), host, &port);
+        qDebug()<<*host<<port;
         QString sData = datagram.data();
         QString copyCurrent = currentActionLast;
         copyCurrent.truncate(copyCurrent.lastIndexOf(QChar('_')));

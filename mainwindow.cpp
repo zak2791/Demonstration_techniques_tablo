@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     udpSocket = new QUdpSocket(this);
 
-    udpSocket->bind(10123, QUdpSocket::ShareAddress);
+    udpSocket->bind(QHostAddress::Any, 10123);
 
     connect(udpSocket, &QUdpSocket::readyRead,
             this, &MainWindow::processPendingDatagrams);
@@ -77,17 +77,28 @@ void MainWindow::slotStatus(){
 
 void MainWindow::slotNewTcpConnection()
 {
+    qDebug()<<hostSectetary;
     tcpSocket = tcpServer->nextPendingConnection();
     if(hostSectetary->isNull()){
         tcpSocket->close();
-            return;
+        return;
     }
 
     connect(tcpSocket, &QTcpSocket::readyRead, this, [=](){
-        QByteArray arr = tcpSocket->readAll();
-        qDebug()<<arr;
-        tcpSocket->write(arr);
-    ;});
+        QByteArray bArr = tcpSocket->readAll();
+
+        QJsonDocument doc = QJsonDocument::fromJson(bArr);
+        if(!doc.isNull()){
+            QJsonObject jObj = doc.object();
+            qDebug()<<jObj;
+            QStringList sList = jObj.keys();
+            if(sList.length() == 6){
+                foreach(auto each, sList)
+                    qDebug()<<"value = "<<jObj.value(each);
+            }
+        }
+        tcpSocket->write(bArr);
+        ;});
     tcpSocket->waitForReadyRead(10000);
     tcpSocket->close();
 }
